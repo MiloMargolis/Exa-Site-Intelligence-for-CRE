@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Building2, Users, Newspaper, Store, Clock, RotateCcw } from 'lucide-react';
 import AddressInput from '@/components/AddressInput';
 import ReportSection from '@/components/ReportSection';
@@ -10,18 +10,121 @@ import ErrorState from '@/components/ErrorState';
 const EXAMPLE_ADDRESS = '255 Elm St, Somerville MA';
 
 interface ResearchResult {
-  data?: {
-    planning_activity?: string;
-    community_sentiment?: string;
-    development_news?: string;
-    tenant_expansion?: string;
-  };
-  costDollars?: {
-    total: number;
-  };
+  data?: string | { content?: string; markdown?: string };
+  researchId?: string;
 }
 
 type AppState = 'input' | 'loading' | 'results' | 'error';
+
+// Parse markdown response into sections
+function parseMarkdownSections(markdown: string): Record<string, string> {
+  const sections: Record<string, string> = {
+    planning_activity: '',
+    community_sentiment: '',
+    development_news: '',
+    tenant_expansion: '',
+  };
+
+  // Try to find sections by headers (both ** and ## formats)
+  const planningMatch = markdown.match(/(?:\*\*|##\s*)Planning Activity(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Community Sentiment|Development News|Tenant Expansion)|$)/i);
+  const communityMatch = markdown.match(/(?:\*\*|##\s*)Community Sentiment(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Development News|Tenant Expansion)|$)/i);
+  const developmentMatch = markdown.match(/(?:\*\*|##\s*)Development News(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Community Sentiment|Tenant Expansion)|$)/i);
+  const tenantMatch = markdown.match(/(?:\*\*|##\s*)Tenant Expansion(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Community Sentiment|Development News)|$)/i);
+
+  if (planningMatch) sections.planning_activity = planningMatch[1].trim();
+  if (communityMatch) sections.community_sentiment = communityMatch[1].trim();
+  if (developmentMatch) sections.development_news = developmentMatch[1].trim();
+  if (tenantMatch) sections.tenant_expansion = tenantMatch[1].trim();
+
+  // If no sections found, put everything in planning_activity as fallback
+  if (!planningMatch && !communityMatch && !developmentMatch && !tenantMatch) {
+    sections.planning_activity = markdown;
+  }
+
+  return sections;
+}
+
+// Results view component
+function ResultsView({ 
+  result, 
+  address, 
+  onReset 
+}: { 
+  result: ResearchResult; 
+  address: string; 
+  onReset: () => void;
+}) {
+  const sections = useMemo(() => {
+    // Extract markdown content from response
+    let markdown = '';
+    if (typeof result.data === 'string') {
+      markdown = result.data;
+    } else if (result.data?.content) {
+      markdown = result.data.content;
+    } else if (result.data?.markdown) {
+      markdown = result.data.markdown;
+    }
+    return parseMarkdownSections(markdown);
+  }, [result]);
+
+  return (
+    <div>
+      {/* Results Header */}
+      <div className="text-center mb-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Intelligence Report
+        </h2>
+        <p className="text-gray-600">{address}</p>
+      </div>
+
+      {/* Report Sections */}
+      <div className="space-y-4 mb-10">
+        <ReportSection
+          title="Planning Activity"
+          icon={Building2}
+          content={sections.planning_activity}
+          defaultExpanded={true}
+        />
+        <ReportSection
+          title="Community Sentiment"
+          icon={Users}
+          content={sections.community_sentiment}
+          defaultExpanded={true}
+        />
+        <ReportSection
+          title="Development News"
+          icon={Newspaper}
+          content={sections.development_news}
+          defaultExpanded={true}
+        />
+        <ReportSection
+          title="Tenant Expansion"
+          icon={Store}
+          content={sections.tenant_expansion}
+          defaultExpanded={true}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-gray-600 mb-4">
+          <Clock className="w-5 h-5" />
+          <span className="text-sm">
+            This report would typically take <strong>4-6 hours</strong> of manual research
+          </span>
+        </div>
+        <button
+          onClick={onReset}
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium 
+                     text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Search Another Address
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [address, setAddress] = useState('');
@@ -141,61 +244,7 @@ export default function Home() {
 
         {/* Results State */}
         {appState === 'results' && result && (
-          <div>
-            {/* Results Header */}
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Intelligence Report
-              </h2>
-              <p className="text-gray-600">{address}</p>
-            </div>
-
-            {/* Report Sections */}
-            <div className="space-y-4 mb-10">
-              <ReportSection
-                title="Planning Activity"
-                icon={Building2}
-                content={result.data?.planning_activity}
-                defaultExpanded={true}
-              />
-              <ReportSection
-                title="Community Sentiment"
-                icon={Users}
-                content={result.data?.community_sentiment}
-                defaultExpanded={true}
-              />
-              <ReportSection
-                title="Development News"
-                icon={Newspaper}
-                content={result.data?.development_news}
-                defaultExpanded={true}
-              />
-              <ReportSection
-                title="Tenant Expansion"
-                icon={Store}
-                content={result.data?.tenant_expansion}
-                defaultExpanded={true}
-              />
-            </div>
-
-            {/* Footer */}
-            <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-100">
-              <div className="flex items-center justify-center gap-2 text-gray-600 mb-4">
-                <Clock className="w-5 h-5" />
-                <span className="text-sm">
-                  This report would typically take <strong>4-6 hours</strong> of manual research
-                </span>
-              </div>
-              <button
-                onClick={handleReset}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium 
-                           text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Search Another Address
-              </button>
-            </div>
-          </div>
+          <ResultsView result={result} address={address} onReset={handleReset} />
         )}
       </div>
     </main>

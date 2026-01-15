@@ -14,30 +14,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const research = await exa.research({
-      query: `Planning board decisions and development activity near ${address}`,
-      instructions: `Focus on official government sources like .gov sites and municipal meeting minutes. Include PDF documents from city planning departments and zoning boards. Also search local news coverage for community sentiment and development announcements. Prioritize recent activity from the last 2 years.`,
+    const research = await exa.research.create({
+      instructions: `Research the commercial real estate landscape near ${address}. Structure your findings into these four categories:
+
+**Planning Activity**: Find planning board decisions, zoning variances, permit approvals, and municipal meeting minutes. Focus on .gov sources and official city planning documents from the last 2 years.
+
+**Community Sentiment**: Find public comments, neighborhood feedback, resident concerns, and any organized opposition to development projects in the area.
+
+**Development News**: Find new construction projects, renovations, proposed developments, and property transactions nearby.
+
+**Tenant Expansion**: Find business openings, commercial lease announcements, retailer expansions, and business relocations in the area.
+
+For each finding, include the date and source when available.`,
       model: "exa-research-fast",
-      outputSchema: {
-        planning_activity: "List of planning board decisions, zoning variances, and permit approvals with dates, outcomes, and brief descriptions",
-        community_sentiment: "Public comments, neighborhood feedback, resident concerns, and any organized opposition to development projects",
-        development_news: "New construction projects, renovations, proposed developments, and property transactions nearby",
-        tenant_expansion: "Business openings, commercial lease announcements, retailer expansions, and relocations in the area"
-      }
     });
 
-    return Response.json(research);
+    // Stream and collect the final result
+    let finalResult = null;
+    const stream = await exa.research.get(research.researchId, { stream: true });
+    
+    for await (const event of stream) {
+      finalResult = event;
+    }
+
+    return Response.json({ 
+      data: finalResult,
+      researchId: research.researchId 
+    });
   } catch (error) {
     console.error('Research API error:', error);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
-        return Response.json(
-          { error: 'Research is taking longer than expected. Please try again.' },
-          { status: 504 }
-        );
-      }
-    }
     
     return Response.json(
       { error: 'An error occurred while generating the report. Please try again.' },
