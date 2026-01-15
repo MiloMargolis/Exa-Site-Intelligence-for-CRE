@@ -118,9 +118,12 @@ export default function AddressInput({
         type="button"
         onClick={onTryExample}
         disabled={isLoading}
-        className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+        className="mt-6 inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-500 
+                   bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
       >
-        Try an example →
+        <span>Try an example</span>
+        <span className="text-gray-400">→</span>
+        <span className="text-gray-600 font-medium">255 Elm St, Somerville MA</span>
       </button>
     </form>
   );

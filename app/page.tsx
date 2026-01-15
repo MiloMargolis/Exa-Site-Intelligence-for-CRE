@@ -314,7 +314,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <span className="font-medium text-gray-900">Site Intelligence</span>
+          <span className="font-medium text-gray-900">Take Home Exercise - Milo Margolis</span>
           <span className="text-xs text-gray-400">
             Powered by Exa
           </span>
@@ -325,7 +325,7 @@ export default function Home() {
         {/* Input State */}
         {appState === 'input' && (
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-serif text-gray-900 mb-16">
+            <h1 className="text-5xl md:text-6xl font-serif text-gray-900 mb-12">
               CRE Site Intelligence
             </h1>
             <AddressInput
@@ -335,6 +335,29 @@ export default function Home() {
               onTryExample={handleTryExample}
               isLoading={false}
             />
+            
+            {/* Category preview */}
+            <div className="mt-16 flex items-center justify-center gap-6 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                <span>Planning</span>
+              </div>
+              <span className="text-gray-200">·</span>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Sentiment</span>
+              </div>
+              <span className="text-gray-200">·</span>
+              <div className="flex items-center gap-2">
+                <Newspaper className="w-4 h-4" />
+                <span>Development</span>
+              </div>
+              <span className="text-gray-200">·</span>
+              <div className="flex items-center gap-2">
+                <Store className="w-4 h-4" />
+                <span>Tenants</span>
+              </div>
+            </div>
           </div>
         )}
 
