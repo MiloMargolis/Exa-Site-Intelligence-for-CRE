@@ -1,14 +1,52 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Building2, Users, Newspaper, Store, Check } from 'lucide-react';
 
-const statusMessages = [
-  'Searching government records',
-  'Scanning planning documents',
-  'Analyzing public filings',
-  'Finding development news',
-  'Reviewing community feedback',
-  'Compiling intelligence report',
+const steps = [
+  { 
+    label: 'Searching government records...', 
+    icon: Building2,
+    category: 'Planning Activity',
+    sources: ['Boston.gov', 'Mass.gov', 'City Planning Portal', 'Zoning Board Records']
+  },
+  { 
+    label: 'Scanning planning board minutes...', 
+    icon: Building2,
+    category: 'Planning Activity',
+    sources: ['Planning Board Minutes', 'Municipal Archives', 'Permit Database', 'Council Records']
+  },
+  { 
+    label: 'Analyzing community sentiment...', 
+    icon: Users,
+    category: 'Community Sentiment',
+    sources: ['Public Comments', 'Neighborhood Forums', 'Local News', 'Community Boards']
+  },
+  { 
+    label: 'Finding development news...', 
+    icon: Newspaper,
+    category: 'Development News',
+    sources: ['Business Journal', 'Real Estate News', 'Construction Updates', 'Property Records']
+  },
+  { 
+    label: 'Checking tenant activity...', 
+    icon: Store,
+    category: 'Tenant Expansion',
+    sources: ['Commercial Listings', 'Lease Announcements', 'Business Filings', 'Retail News']
+  },
+  { 
+    label: 'Compiling your report...', 
+    icon: Check,
+    category: null,
+    sources: ['Synthesizing findings', 'Generating summary', 'Calculating risk signals']
+  },
+];
+
+const categories = [
+  { name: 'Planning Activity', icon: Building2 },
+  { name: 'Community Sentiment', icon: Users },
+  { name: 'Development News', icon: Newspaper },
+  { name: 'Tenant Expansion', icon: Store },
 ];
 
 interface LoadingStateProps {
@@ -16,104 +54,159 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({ address }: LoadingStateProps) {
-  const [currentMessage, setCurrentMessage] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [dots, setDots] = useState('');
-
-  // Cycle through status messages
-  useEffect(() => {
-    const messageInterval = setInterval(() => {
-      setCurrentMessage((prev) => (prev + 1) % statusMessages.length);
-    }, 4000);
-
-    return () => clearInterval(messageInterval);
-  }, []);
-
-  // Animate dots
-  useEffect(() => {
-    const dotsInterval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
-    }, 400);
-
-    return () => clearInterval(dotsInterval);
-  }, []);
+  const [currentSource, setCurrentSource] = useState(0);
+  const [completedCategories, setCompletedCategories] = useState<string[]>([]);
 
   // Track elapsed time
   useEffect(() => {
     const timer = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
-  const progress = Math.min((elapsedTime / 35) * 100, 95); // Cap at 95% until complete
+  // Rotate through steps every 5 seconds
+  useEffect(() => {
+    const stepInterval = setInterval(() => {
+      setCurrentStep((prev) => {
+        const next = Math.min(prev + 1, steps.length - 1);
+        // Mark category as complete when moving past it
+        const currentCategory = steps[prev].category;
+        if (currentCategory && !completedCategories.includes(currentCategory)) {
+          setCompletedCategories(c => [...c, currentCategory]);
+        }
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(stepInterval);
+  }, [completedCategories]);
+
+  // Cycle through sources rapidly
+  useEffect(() => {
+    const sourceInterval = setInterval(() => {
+      setCurrentSource((prev) => (prev + 1) % steps[currentStep].sources.length);
+    }, 600);
+    return () => clearInterval(sourceInterval);
+  }, [currentStep]);
+
+  // Progress moves in chunks based on step
+  const progress = Math.min(((currentStep + 1) / steps.length) * 100, 95);
+  
+  const CurrentIcon = steps[currentStep].icon;
 
   return (
-    <div className="w-full max-w-xl mx-auto text-center">
-      {/* Animated orb */}
-      <div className="relative w-24 h-24 mx-auto mb-8">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 animate-pulse opacity-20 blur-xl" />
-        <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 animate-pulse opacity-40 blur-lg" />
-        <div className="absolute inset-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent" />
-          {/* Spinning ring */}
-          <svg className="absolute inset-0 w-full h-full animate-spin" style={{ animationDuration: '3s' }}>
-            <circle
-              cx="50%"
-              cy="50%"
-              r="45%"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeDasharray="20 80"
-              strokeLinecap="round"
-              opacity="0.5"
-            />
-          </svg>
+    <div className="w-full max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-serif text-gray-900 mb-2">
+          Researching
+        </h2>
+        <p className="text-gray-500 truncate max-w-md mx-auto">{address}</p>
+      </div>
+
+      {/* Current step indicator */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 rounded-full">
+          <CurrentIcon className="w-4 h-4 text-blue-600 animate-pulse" />
+          <span className="text-sm font-medium text-blue-700">
+            {steps[currentStep].label}
+          </span>
         </div>
       </div>
 
-      {/* Status text */}
-      <div className="mb-8">
-        <p className="text-lg text-gray-900 font-medium h-7">
-          {statusMessages[currentMessage]}{dots}
-        </p>
-        <p className="text-sm text-gray-400 mt-2 truncate max-w-md mx-auto px-4">
-          {address}
-        </p>
-      </div>
-
-      {/* Progress bar */}
-      <div className="max-w-xs mx-auto mb-6">
-        <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+      {/* Progress bar - moves in chunks */}
+      <div className="max-w-md mx-auto mb-4">
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000 ease-out"
+            className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
+      {/* Live source feed */}
+      <div className="text-center mb-8 h-6">
+        <p className="text-xs text-gray-400">
+          <span className="text-gray-500">{steps[currentStep].sources[currentSource]}</span>
+          <span className="mx-2">→</span>
+          <span className="text-gray-400">
+            {steps[currentStep].sources[(currentSource + 1) % steps[currentStep].sources.length]}
+          </span>
+          <span className="mx-2">→</span>
+          <span className="text-gray-300">
+            {steps[currentStep].sources[(currentSource + 2) % steps[currentStep].sources.length]}
+          </span>
+        </p>
+      </div>
+
+      {/* Category cards */}
+      <div className="space-y-3">
+        {categories.map((category, index) => {
+          const isComplete = completedCategories.includes(category.name);
+          const isActive = steps[currentStep].category === category.name;
+          const Icon = category.icon;
+
+          return (
+            <div
+              key={category.name}
+              className={`p-4 rounded-xl border transition-all duration-500 ${
+                isComplete
+                  ? 'bg-white border-green-200'
+                  : isActive
+                  ? 'bg-white border-blue-200'
+                  : 'bg-gray-50 border-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  isComplete
+                    ? 'bg-green-100'
+                    : isActive
+                    ? 'bg-blue-100'
+                    : 'bg-gray-100'
+                }`}>
+                  {isComplete ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <span className={`font-medium ${
+                    isComplete ? 'text-gray-900' : isActive ? 'text-gray-900' : 'text-gray-400'
+                  }`}>
+                    {category.name}
+                  </span>
+                </div>
+                {isComplete && (
+                  <span className="text-xs text-green-600 font-medium">Complete</span>
+                )}
+                {isActive && (
+                  <span className="text-xs text-blue-600 font-medium animate-pulse">Searching...</span>
+                )}
+              </div>
+              
+              {/* Skeleton content for incomplete cards */}
+              {!isComplete && (
+                <div className="mt-3 space-y-2">
+                  <div className={`h-3 rounded ${isActive ? 'bg-blue-100 animate-pulse' : 'bg-gray-100'}`} 
+                       style={{ width: isActive ? '80%' : '60%' }} />
+                  <div className={`h-3 rounded ${isActive ? 'bg-blue-50 animate-pulse' : 'bg-gray-50'}`} 
+                       style={{ width: isActive ? '60%' : '40%' }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Time indicator */}
-      <div className="flex items-center justify-center gap-3 text-sm text-gray-400">
+      <div className="flex items-center justify-center gap-3 mt-6 text-sm text-gray-400">
         <span className="tabular-nums">{elapsedTime}s</span>
         <span className="w-1 h-1 rounded-full bg-gray-300" />
         <span>~30 seconds total</span>
-      </div>
-
-      {/* Floating particles */}
-      <div className="relative h-16 mt-8 overflow-hidden opacity-40">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400 rounded-full animate-bounce"
-            style={{
-              left: `${20 + i * 15}%`,
-              animationDelay: `${i * 0.2}s`,
-              animationDuration: '1.5s',
-            }}
-          />
-        ))}
       </div>
     </div>
   );
