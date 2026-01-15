@@ -46,6 +46,11 @@ For each finding, include the date and source when available.`,
       finalResult = event;
     }
 
+    // Debug: Log the full response structure
+    console.log('=== EXA RESPONSE ===');
+    console.log(JSON.stringify(finalResult, null, 2));
+    console.log('=== END RESPONSE ===');
+
     return Response.json({ 
       data: finalResult,
       researchId: research.researchId 

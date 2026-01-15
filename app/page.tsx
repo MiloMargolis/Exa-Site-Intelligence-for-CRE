@@ -10,7 +10,13 @@ import ErrorState from '@/components/ErrorState';
 const EXAMPLE_ADDRESS = '255 Elm St, Somerville MA';
 
 interface ResearchResult {
-  data?: string | { content?: string; markdown?: string };
+  data?: string | { 
+    output?: { 
+      content?: string;
+      costDollars?: { total: number };
+    }; 
+    content?: string; 
+  };
   researchId?: string;
 }
 
@@ -25,11 +31,11 @@ function parseMarkdownSections(markdown: string): Record<string, string> {
     tenant_expansion: '',
   };
 
-  // Try to find sections by headers (both ** and ## formats)
-  const planningMatch = markdown.match(/(?:\*\*|##\s*)Planning Activity(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Community Sentiment|Development News|Tenant Expansion)|$)/i);
-  const communityMatch = markdown.match(/(?:\*\*|##\s*)Community Sentiment(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Development News|Tenant Expansion)|$)/i);
-  const developmentMatch = markdown.match(/(?:\*\*|##\s*)Development News(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Community Sentiment|Tenant Expansion)|$)/i);
-  const tenantMatch = markdown.match(/(?:\*\*|##\s*)Tenant Expansion(?:\*\*)?[:\s]*([\s\S]*?)(?=(?:\*\*|##\s*)(?:Planning Activity|Community Sentiment|Development News)|$)/i);
+  // Match ### headers (Exa uses h3 markdown headers)
+  const planningMatch = markdown.match(/###\s*Planning Activity\s*\n([\s\S]*?)(?=###\s*(?:Community Sentiment|Development News|Tenant Expansion)|$)/i);
+  const communityMatch = markdown.match(/###\s*Community Sentiment\s*\n([\s\S]*?)(?=###\s*(?:Planning Activity|Development News|Tenant Expansion)|$)/i);
+  const developmentMatch = markdown.match(/###\s*Development News\s*\n([\s\S]*?)(?=###\s*(?:Planning Activity|Community Sentiment|Tenant Expansion)|$)/i);
+  const tenantMatch = markdown.match(/###\s*Tenant Expansion\s*\n([\s\S]*?)(?=###\s*(?:Planning Activity|Community Sentiment|Development News)|$)/i);
 
   if (planningMatch) sections.planning_activity = planningMatch[1].trim();
   if (communityMatch) sections.community_sentiment = communityMatch[1].trim();
@@ -55,14 +61,14 @@ function ResultsView({
   onReset: () => void;
 }) {
   const sections = useMemo(() => {
-    // Extract markdown content from response
+    // Extract markdown content from Exa response: data.output.content
     let markdown = '';
     if (typeof result.data === 'string') {
       markdown = result.data;
+    } else if (result.data?.output?.content) {
+      markdown = result.data.output.content;
     } else if (result.data?.content) {
       markdown = result.data.content;
-    } else if (result.data?.markdown) {
-      markdown = result.data.markdown;
     }
     return parseMarkdownSections(markdown);
   }, [result]);
