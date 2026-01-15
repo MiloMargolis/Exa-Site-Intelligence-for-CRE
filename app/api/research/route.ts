@@ -24,17 +24,25 @@ export async function POST(request: NextRequest) {
     }
 
     const research = await exa.research.create({
-      instructions: `Research the commercial real estate landscape near ${address}. Structure your findings into these four categories:
+      instructions: `Research the commercial real estate landscape near ${address}. 
 
-**Planning Activity**: Find planning board decisions, zoning variances, permit approvals, and municipal meeting minutes. Focus on .gov sources and official city planning documents from the last 2 years.
+Start with an **Executive Summary** section: Write 2-3 sentences summarizing the key findings, development momentum, and any notable risks or opportunities for this location.
 
-**Community Sentiment**: Find public comments, neighborhood feedback, resident concerns, and any organized opposition to development projects in the area.
+Then structure your detailed findings into these four categories:
 
-**Development News**: Find new construction projects, renovations, proposed developments, and property transactions nearby.
+### Planning Activity
+Find planning board decisions, zoning variances, permit approvals, and municipal meeting minutes. Focus on .gov sources and official city planning documents from the last 2 years. Include specific dates for each finding.
 
-**Tenant Expansion**: Find business openings, commercial lease announcements, retailer expansions, and business relocations in the area.
+### Community Sentiment  
+Find public comments, neighborhood feedback, resident concerns, and any organized opposition to development projects in the area. Note any controversies, denials, or blocked projects. Include dates.
 
-For each finding, include the date and source when available.`,
+### Development News
+Find new construction projects, renovations, proposed developments, and property transactions nearby. Include project values, timelines, and dates when available.
+
+### Tenant Expansion
+Find business openings, commercial lease announcements, retailer expansions, and business relocations in the area. Include dates and company names.
+
+For each finding, always include the date (month/year) and source name when available.`,
       model: "exa-research-fast",
     });
 

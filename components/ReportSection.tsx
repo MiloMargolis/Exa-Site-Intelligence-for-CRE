@@ -1,58 +1,90 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink, LucideIcon } from 'lucide-react';
+import { ChevronDown, ExternalLink, LucideIcon } from 'lucide-react';
 
 interface ReportSectionProps {
   title: string;
   icon: LucideIcon;
   content: string | string[] | null | undefined;
-  sources?: Array<{ url: string; title?: string }>;
   isLoading?: boolean;
   defaultExpanded?: boolean;
 }
 
-interface ParsedContent {
-  text: string;
-  sources: Array<{ title: string; url: string }>;
-}
+// Risk keywords to flag
+const RISK_KEYWORDS = [
+  'opposition', 'opposed', 'denied', 'rejected', 'concerns', 
+  'controversy', 'blocked', 'protest', 'lawsuit', 'appeal',
+  'delayed', 'contested', 'dispute', 'residents oppose'
+];
 
 // Parse markdown content and extract sources
-function parseMarkdownContent(content: string): ParsedContent {
+function parseMarkdownContent(content: string): {
+  text: string;
+  sources: Array<{ title: string; url: string }>;
+} {
   const sources: Array<{ title: string; url: string }> = [];
   
-  // Extract markdown links: [text](url)
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   let match;
   
   while ((match = linkRegex.exec(content)) !== null) {
     const [, title, url] = match;
-    // Avoid duplicates
     if (!sources.some(s => s.url === url)) {
       sources.push({ title, url });
     }
   }
   
-  // Clean up the text - remove markdown link syntax but keep readable text
   let cleanText = content
-    // Replace ([Title](url)) with just the context
     .replace(/\s*\(\[([^\]]+)\]\([^)]+\)\)/g, '')
-    // Replace [Title](url) with just Title
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    // Clean up multiple spaces
     .replace(/\s+/g, ' ')
     .trim();
   
   return { text: cleanText, sources };
 }
 
-// Split text into sentences for better readability
+// Extract date from text
+function extractDate(text: string): string | null {
+  // Match patterns like "December 2025", "Dec 2025", "12/2025", "2025", "May 2024"
+  const patterns = [
+    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b/i,
+    /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+(\d{4})\b/i,
+    /\b(\d{1,2})\/(\d{4})\b/,
+    /\b(Q[1-4])\s+(\d{4})\b/i,
+    /\b(early|mid|late)\s+(\d{4})\b/i,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      if (pattern === patterns[2]) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[parseInt(match[1]) - 1]} ${match[2]}`;
+      }
+      return `${match[1]} ${match[2]}`;
+    }
+  }
+  
+  // Just year
+  const yearMatch = text.match(/\b(202[0-9])\b/);
+  if (yearMatch) return yearMatch[1];
+  
+  return null;
+}
+
+// Check if text contains risk keywords
+function hasRiskSignal(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return RISK_KEYWORDS.some(keyword => lowerText.includes(keyword));
+}
+
+// Split text into sentences
 function splitIntoPoints(text: string): string[] {
-  // Split on periods followed by space and capital letter, or on double newlines
   const sentences = text
     .split(/(?<=\.)\s+(?=[A-Z])|(?<=\.)(?=\s*$)/)
     .map(s => s.trim())
-    .filter(s => s.length > 20); // Filter out very short fragments
+    .filter(s => s.length > 20);
   
   return sentences;
 }
@@ -66,7 +98,6 @@ export default function ReportSection({
 }: ReportSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  // Process content
   const processedContent = typeof content === 'string' ? parseMarkdownContent(content) : null;
   const points = processedContent ? splitIntoPoints(processedContent.text) : [];
   const sources = processedContent?.sources || [];
@@ -83,7 +114,6 @@ export default function ReportSection({
           <div className="mt-4 space-y-3">
             <div className="h-4 bg-gray-50 rounded animate-pulse w-full" />
             <div className="h-4 bg-gray-50 rounded animate-pulse w-5/6" />
-            <div className="h-4 bg-gray-50 rounded animate-pulse w-4/6" />
           </div>
         </div>
       </div>
@@ -119,16 +149,25 @@ export default function ReportSection({
           {hasContent ? (
             <>
               <div className="space-y-4">
-                {points.map((point, index) => (
-                  <div 
-                    key={index} 
-                    className="pl-4 border-l-2 border-gray-100 hover:border-blue-200 transition-colors"
-                  >
-                    <p className="text-[15px] leading-relaxed text-gray-600">
-                      {point}
-                    </p>
-                  </div>
-                ))}
+                {points.map((point, index) => {
+                  const date = extractDate(point);
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className="pl-4 border-l-2 border-gray-100 hover:border-blue-200 transition-colors"
+                    >
+                      <p className="text-[15px] leading-relaxed text-gray-600">
+                        {point}
+                      </p>
+                      {date && (
+                        <span className="inline-block mt-2 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                          {date}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               
               {sources.length > 0 && (
@@ -167,3 +206,6 @@ export default function ReportSection({
     </div>
   );
 }
+
+// Export helper for use in parent component
+export { parseMarkdownContent, extractDate, hasRiskSignal, RISK_KEYWORDS };
