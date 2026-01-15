@@ -1,10 +1,19 @@
 import Exa from 'exa-js';
 import { NextRequest } from 'next/server';
 
-const exa = new Exa(process.env.EXA_API_KEY);
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    const apiKey = process.env.EXA_API_KEY;
+    if (!apiKey) {
+      return Response.json(
+        { error: 'API key not configured' },
+        { status: 500 }
+      );
+    }
+
+    const exa = new Exa(apiKey);
     const { address } = await request.json();
 
     if (!address || address.trim().length === 0) {
