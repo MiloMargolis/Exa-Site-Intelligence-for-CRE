@@ -71,10 +71,10 @@ function ResultsView({
     <div>
       {/* Results Header */}
       <div className="text-center mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-serif font-semibold text-gray-900 mb-2">
           Intelligence Report
         </h2>
-        <p className="text-gray-600">{address}</p>
+        <p className="text-gray-500">{address}</p>
       </div>
 
       {/* Report Sections */}
@@ -106,17 +106,17 @@ function ResultsView({
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-100">
-        <div className="flex items-center justify-center gap-2 text-gray-600 mb-4">
-          <Clock className="w-5 h-5" />
+      <div className="rounded-xl p-6 text-center border border-gray-100">
+        <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
+          <Clock className="w-4 h-4" />
           <span className="text-sm">
-            This report would typically take <strong>4-6 hours</strong> of manual research
+            This report would typically take <strong className="text-gray-700">4-6 hours</strong> of manual research
           </span>
         </div>
         <button
           onClick={onReset}
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium 
-                     text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                     text-blue-600 hover:text-blue-700 transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
           Search Another Address
@@ -176,33 +176,24 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <main className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900">Site Intelligence</span>
-          </div>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+      <header className="bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
+          <span className="font-medium text-gray-900">Site Intelligence</span>
+          <span className="text-xs text-gray-400">
             Powered by Exa
           </span>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-3xl mx-auto px-4 pt-32 pb-16">
         {/* Input State */}
         {appState === 'input' && (
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Site Intelligence Report
+            <h1 className="text-5xl md:text-6xl font-serif text-gray-900 mb-16">
+              CRE Site Intelligence
             </h1>
-            <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto">
-              Enter a property address to get an AI-powered analysis of planning activity, 
-              community sentiment, and development news nearby.
-            </p>
             <AddressInput
               value={address}
               onChange={setAddress}
@@ -210,23 +201,6 @@ export default function Home() {
               onTryExample={handleTryExample}
               isLoading={false}
             />
-            
-            {/* Features */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              {[
-                { icon: Building2, label: 'Planning Activity' },
-                { icon: Users, label: 'Community Sentiment' },
-                { icon: Newspaper, label: 'Development News' },
-                { icon: Store, label: 'Tenant Expansion' },
-              ].map((feature, i) => (
-                <div key={i} className="text-center">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-2">
-                    <feature.icon className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <span className="text-sm text-gray-600">{feature.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 

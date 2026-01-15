@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --foreground: #0a0a0a;
-  --background: #fafafa;
+  --background: #ffffff;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
   --border: #e5e7eb;
@@ -14,7 +16,12 @@
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 @layer utilities {

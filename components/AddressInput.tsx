@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, Sparkles, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowUp, Loader2 } from 'lucide-react';
 
 interface AddressInputProps {
   value: string;
@@ -25,55 +25,45 @@ export default function AddressInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto">
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          <MapPin className="w-5 h-5" />
-        </div>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="e.g., 123 Main St, Somerville MA"
-          className="w-full pl-12 pr-4 py-4 text-lg border border-gray-200 rounded-xl 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     bg-white shadow-sm transition-shadow hover:shadow-md"
+          placeholder="Search any address..."
+          className="w-full px-5 pr-14 py-4 text-lg border border-gray-200 rounded-2xl 
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400
+                     bg-white shadow-sm transition-all duration-200
+                     placeholder:text-gray-400"
           disabled={isLoading}
         />
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-        <button
-          type="button"
-          onClick={onTryExample}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 
-                     bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-        >
-          <Sparkles className="w-4 h-4" />
-          Try Example
-        </button>
-
         <button
           type="submit"
           disabled={!value.trim() || isLoading}
-          className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white 
-                     bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors
-                     disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center
+                     bg-gradient-to-b from-blue-500 to-blue-600 text-white rounded-xl 
+                     hover:from-blue-600 hover:to-blue-700 transition-all
+                     disabled:from-gray-200 disabled:to-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed
+                     shadow-sm"
+          aria-label="Generate Report"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <>
-              Generate Report
-              <ArrowRight className="w-4 h-4" />
-            </>
+            <ArrowUp className="w-4 h-4" />
           )}
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={onTryExample}
+        disabled={isLoading}
+        className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+      >
+        Try an example →
+      </button>
     </form>
   );
 }
