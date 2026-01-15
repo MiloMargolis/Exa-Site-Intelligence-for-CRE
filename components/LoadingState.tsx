@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Users, Newspaper, Store, Check } from 'lucide-react';
 
-const steps = [
-  { icon: Search, label: 'Searching planning records...', duration: 8000 },
-  { icon: Users, label: 'Analyzing community sentiment...', duration: 10000 },
-  { icon: Newspaper, label: 'Finding development news...', duration: 10000 },
-  { icon: Store, label: 'Compiling report...', duration: 12000 },
+const statusMessages = [
+  'Searching government records',
+  'Scanning planning documents',
+  'Analyzing public filings',
+  'Finding development news',
+  'Reviewing community feedback',
+  'Compiling intelligence report',
 ];
 
 interface LoadingStateProps {
@@ -15,120 +16,103 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({ address }: LoadingStateProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentMessage, setCurrentMessage] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [dots, setDots] = useState('');
 
+  // Cycle through status messages
+  useEffect(() => {
+    const messageInterval = setInterval(() => {
+      setCurrentMessage((prev) => (prev + 1) % statusMessages.length);
+    }, 4000);
+
+    return () => clearInterval(messageInterval);
+  }, []);
+
+  // Animate dots
+  useEffect(() => {
+    const dotsInterval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+    }, 400);
+
+    return () => clearInterval(dotsInterval);
+  }, []);
+
+  // Track elapsed time
   useEffect(() => {
     const timer = setInterval(() => {
-      setElapsedTime((prev) => prev + 1000);
+      setElapsedTime((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    let totalTime = 0;
-    const timeouts: NodeJS.Timeout[] = [];
-
-    steps.forEach((step, index) => {
-      if (index > 0) {
-        const timeout = setTimeout(() => {
-          setCurrentStep(index);
-        }, totalTime);
-        timeouts.push(timeout);
-      }
-      totalTime += step.duration;
-    });
-
-    return () => timeouts.forEach((t) => clearTimeout(t));
-  }, []);
-
-  const formatTime = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    return `${seconds}s`;
-  };
+  const progress = Math.min((elapsedTime / 35) * 100, 95); // Cap at 95% until complete
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Address being searched */}
-      <div className="text-center mb-8">
-        <p className="text-sm text-gray-500">Researching</p>
-        <p className="text-lg font-medium text-gray-900 mt-1">{address}</p>
-      </div>
-
-      {/* Progress steps */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <div className="space-y-4">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = index === currentStep;
-            const isComplete = index < currentStep;
-
-            return (
-              <div
-                key={index}
-                className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-300 ${
-                  isActive
-                    ? 'bg-blue-50 border border-blue-100'
-                    : isComplete
-                    ? 'bg-gray-50'
-                    : ''
-                }`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : isComplete
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-400'
-                  }`}
-                >
-                  {isComplete ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <Icon className={`w-5 h-5 ${isActive ? 'animate-pulse' : ''}`} />
-                  )}
-                </div>
-                <span
-                  className={`font-medium ${
-                    isActive
-                      ? 'text-blue-700'
-                      : isComplete
-                      ? 'text-gray-600'
-                      : 'text-gray-400'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Time elapsed */}
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-          <p className="text-sm text-gray-500">
-            Time elapsed: <span className="font-medium">{formatTime(elapsedTime)}</span>
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Research typically takes 25-40 seconds
-          </p>
+    <div className="w-full max-w-xl mx-auto text-center">
+      {/* Animated orb */}
+      <div className="relative w-24 h-24 mx-auto mb-8">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 animate-pulse opacity-20 blur-xl" />
+        <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 animate-pulse opacity-40 blur-lg" />
+        <div className="absolute inset-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent" />
+          {/* Spinning ring */}
+          <svg className="absolute inset-0 w-full h-full animate-spin" style={{ animationDuration: '3s' }}>
+            <circle
+              cx="50%"
+              cy="50%"
+              r="45%"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeDasharray="20 80"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+          </svg>
         </div>
       </div>
 
-      {/* Skeleton cards preview */}
-      <div className="mt-6 grid gap-4">
-        {[1, 2, 3, 4].map((i) => (
+      {/* Status text */}
+      <div className="mb-8">
+        <p className="text-lg text-gray-900 font-medium h-7">
+          {statusMessages[currentMessage]}{dots}
+        </p>
+        <p className="text-sm text-gray-400 mt-2 truncate max-w-md mx-auto px-4">
+          {address}
+        </p>
+      </div>
+
+      {/* Progress bar */}
+      <div className="max-w-xs mx-auto mb-6">
+        <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Time indicator */}
+      <div className="flex items-center justify-center gap-3 text-sm text-gray-400">
+        <span className="tabular-nums">{elapsedTime}s</span>
+        <span className="w-1 h-1 rounded-full bg-gray-300" />
+        <span>~30 seconds total</span>
+      </div>
+
+      {/* Floating particles */}
+      <div className="relative h-16 mt-8 overflow-hidden opacity-40">
+        {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 animate-pulse"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100" />
-              <div className="h-5 w-32 bg-gray-100 rounded" />
-            </div>
-          </div>
+            className="absolute w-1 h-1 bg-blue-400 rounded-full animate-bounce"
+            style={{
+              left: `${20 + i * 15}%`,
+              animationDelay: `${i * 0.2}s`,
+              animationDuration: '1.5s',
+            }}
+          />
         ))}
       </div>
     </div>
